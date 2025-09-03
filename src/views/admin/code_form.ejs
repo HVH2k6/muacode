@@ -1,0 +1,29 @@
+
+<h3><%= code._id ? 'Sửa' : 'Thêm' %> Source Code</h3>
+<form class="row g-3 mt-2" method="POST" action="<%= action %>">
+  <input type="hidden" name="_method" value="<%= method === 'POST' ? 'POST' : 'PUT' %>">
+  <div class="col-md-6">
+    <label class="form-label">Tên</label>
+    <input class="form-control" name="title" required value="<%= code.title || '' %>">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label">Giá (VND)</label>
+    <input type="number" min="0" class="form-control" name="priceVND" required value="<%= code.priceVND || 0 %>">
+  </div>
+  <div class="col-12">
+    <label class="form-label">Ảnh (URL)</label>
+    <input class="form-control" name="imageUrl" value="<%= code.imageUrl || '' %>">
+  </div>
+  <div class="col-12">
+    <label class="form-label">Mô tả</label>
+    <textarea class="form-control" rows="4" name="description"><%= code.description || '' %></textarea>
+  </div>
+  <div class="col-12">
+    <label class="form-label">Link Drive (chứa toàn bộ code)</label>
+    <input class="form-control" name="driveLink" required value="<%= code.driveLink || '' %>">
+  </div>
+  <div class="col-12">
+    <button class="btn btn-success">Lưu</button>
+    <a class="btn btn-secondary" href="/admin/codes">Hủy</a>
+  </div>
+</form>

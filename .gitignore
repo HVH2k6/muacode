@@ -1,0 +1,11 @@
+
+/node_modules
+.env*.local
+.env.*
+
+# vercel
+.vercel
+note.html
+todo.html
+admin.css
+styleadmin.txt

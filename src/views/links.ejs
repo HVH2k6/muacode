@@ -1,0 +1,26 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Tổng hợp các GET endpoint</h3>
+  <a class="btn btn-outline-secondary btn-sm" href="/">Về trang chủ</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <p class="text-muted mb-3">
+      Dưới đây là các đường dẫn (GET). Với những link có <code>:id</code>,
+      bạn hãy thay bằng ID thật. Nếu database có sẵn dữ liệu, hệ thống đã gợi ý 1 vài link ví dụ.
+    </p>
+    <ul class="list-group">
+      <% links.forEach(item => { %>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div class="text-truncate">
+            <span class="fw-semibold"><%= item.label %></span><br/>
+            <code><%= item.path %></code>
+          </div>
+          <a href="<%= item.path %>" class="btn btn-sm btn-primary" target="_blank" rel="noopener">
+            Mở
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+</div>

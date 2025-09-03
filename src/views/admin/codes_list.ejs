@@ -1,0 +1,28 @@
+
+<div class="d-flex justify-content-between align-items-center">
+  <h3>Quản lý Source Code</h3>
+  <a class="btn btn-primary" href="/admin/codes/new">+ Thêm</a>
+</div>
+<table class="table table-striped align-middle mt-3">
+  <thead><tr>
+    <th>Ảnh</th><th>Tên</th><th>Giá</th><th>Drive</th><th></th>
+  </tr></thead>
+  <tbody>
+    <% codes.forEach(c => { %>
+    <tr>
+      <td style="width:90px">
+        <% if (c.imageUrl) { %><img src="<%= c.imageUrl %>" style="width:80px;height:60px;object-fit:cover" class="rounded border"/><% } %>
+      </td>
+      <td><%= c.title %></td>
+      <td><%= money(c.priceVND) %> ₫</td>
+      <td><a href="<%= c.driveLink %>" target="_blank" rel="noopener">Mở</a></td>
+      <td class="text-end">
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/codes/<%= c._id %>/edit">Sửa</a>
+        <form class="d-inline" method="POST" action="/admin/codes/<%= c._id %>?_method=DELETE" onsubmit="return confirm('Xóa?')">
+          <button class="btn btn-sm btn-outline-danger">Xóa</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>

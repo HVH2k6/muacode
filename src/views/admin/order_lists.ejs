@@ -1,0 +1,35 @@
+
+<h3>Quản lý Đơn hàng</h3>
+<table class="table table-hover align-middle mt-3">
+  <thead><tr>
+    <th>Thời gian</th><th>Đơn</th><th>Người mua</th><th>Email</th>
+    <th>Source</th><th>Giá</th><th>Trạng thái</th><th></th>
+  </tr></thead>
+  <tbody>
+    <% orders.forEach(o => { %>
+      <tr>
+        <td><%= new Date(o.createdAt).toLocaleString('vi-VN') %></td>
+        <td>#<%= o.orderCode %></td>
+        <td><%= o.buyerName %></td>
+        <td><%= o.buyerEmail %></td>
+        <td><%= o.code?.title %></td>
+        <td><%= money(o.amount) %> ₫</td>
+        <td>
+          <span class="badge bg-<%= o.status === 'PAID' ? 'success' : 'secondary' %>"><%= o.status %></span>
+          <% if (o.paidAt) { %><div class="small text-muted"><%= new Date(o.paidAt).toLocaleString('vi-VN') %></div><% } %>
+        </td>
+        <td class="text-end">
+          <% if (o.checkoutUrl && o.status !== 'PAID') { %>
+            <a class="btn btn-sm btn-outline-primary" href="<%= o.checkoutUrl %>" target="_blank">Mở link payOS</a>
+          <% } %>
+          <% if (o.status !== 'PAID') { %>
+          <form class="d-inline" method="POST" action="/admin/orders/<%= o._id %>/mark-paid">
+            <button class="btn btn-sm btn-outline-success">Đánh dấu PAID</button>
+          </form>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+<!-- LFrR0Qn9Gb2LFbE0 -->

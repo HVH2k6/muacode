@@ -1,0 +1,17 @@
+
+<h3>Tạo đơn mua: <%= code.title %></h3>
+<p>Giá: <strong><%= money(code.priceVND) %> ₫</strong></p>
+<form method="POST" action="/order" class="row g-3 mt-2">
+  <input type="hidden" name="codeId" value="<%= code._id %>" />
+  <div class="col-md-6">
+    <label class="form-label">Tên người mua</label>
+    <input required class="form-control" name="name" placeholder="Nguyễn Văn A" />
+  </div>
+  <div class="col-md-6">
+    <label class="form-label">Email</label>
+    <input required type="email" class="form-control" name="email" placeholder="[email protected]" />
+  </div>
+  <div class="col-12">
+    <button class="btn btn-success">Tạo đơn & Thanh toán với payOS</button>
+  </div>
+</form>

@@ -1,0 +1,88 @@
+<h3>Trạng thái đơn #<%= order.orderCode %></h3>
+
+<% if (ok) { %>
+<div class="alert alert-info">
+  Cảm ơn bạn! Hệ thống đang xác nhận thanh toán (qua webhook). Trang sẽ tự cập
+  nhật.
+</div>
+<% } else { %>
+<div class="alert alert-warning">
+  Bạn đã hủy thanh toán. Bạn có thể thử lại.
+</div>
+<% } %>
+
+<p>
+  <strong>Trạng thái hiện tại:</strong>
+  <span
+    class="badge bg-<%= order.status === 'PAID' ? 'success' : 'secondary' %>"
+    ><%= order.status %></span
+  >
+</p>
+
+<% if (order.status === 'PAID') { %>
+<div class="mb-4">
+  <div class="card shadow-sm border-success">
+    <div class="card-header bg-success text-white">
+      <h4 class="mb-0">📦 Hướng dẫn kích hoạt code</h4>
+    </div>
+    <div class="card-body">
+      <p class="mb-3">
+        Để tôn trọng quyền tác giả (aka: người viết code), vui lòng thực hiện
+        các bước sau:
+      </p>
+      <ol class="list-group list-group-numbered">
+        <li class="list-group-item">
+          Sao chép <strong class="text-primary">mã đơn</strong> của bạn:
+          <code>#<%= order.orderCode %></code>
+        </li>
+        <li class="list-group-item">
+          Sau khi tải code và import CSDL, hệ thống sẽ yêu cầu
+          <strong>mã kích hoạt</strong>. Hãy nhập mã đơn của bạn.
+          <span class="badge bg-warning text-dark ms-2">Mỗi mã kích hoạt chỉ dùng 1 lần</span>
+        </li>
+        <li class="list-group-item">
+          Sau khi kích hoạt, bạn có thể sử dụng code ngay.
+          <br />
+          <small class="text-muted">
+            ⚠️ Code được khóa theo IP/máy. Vui lòng không chia sẻ sau khi kích
+            hoạt.
+          </small>
+        </li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-success d-flex align-items-center justify-content-between">
+  <div>
+    ✅ Thanh toán thành công! Bạn có thể tải code tại đây:
+  </div>
+  <a
+    class="btn btn-sm btn-primary ms-2"
+    href="<%= order.code.driveLink %>"
+    target="_blank"
+    rel="noopener"
+  >
+    Mở link Drive
+  </a>
+</div>
+<% } else { %>
+<button id="reload" class="btn btn-outline-primary btn-sm">
+  Kiểm tra lại trạng thái
+</button>
+<script>
+  const btn = document.getElementById('reload');
+  btn.addEventListener('click', async () => {
+    const res = await fetch('/api/order/<%= order._id %>');
+    const data = await res.json();
+    if (data.status === 'PAID') location.reload();
+    else alert('Chưa nhận được thanh toán, thử lại sau.');
+  });
+  // auto-poll mỗi 4s
+  setInterval(async () => {
+    const res = await fetch('/api/order/<%= order._id %>');
+    const data = await res.json();
+    if (data.status === 'PAID') location.reload();
+  }, 4000);
+</script>
+<% } %>

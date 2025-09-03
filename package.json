@@ -1,0 +1,27 @@
+{
+  "name": "shop_laptop",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "start": "node --watch --env-file=.env ./src/index.js",
+    "initDB": "node --env-file=.env src/initDb.js && exit"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "@payos/node": "^2.0.2",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-basic-auth": "^1.2.1",
+    "express-ejs-layouts": "^2.5.1",
+    "method-override": "^3.0.0",
+    "mongoose": "^8.9.6",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
