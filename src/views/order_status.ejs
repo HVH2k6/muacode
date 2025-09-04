@@ -38,7 +38,9 @@
         <li class="list-group-item">
           Sau khi tải code và import CSDL, hệ thống sẽ yêu cầu
           <strong>mã kích hoạt</strong>. Hãy nhập mã đơn của bạn.
-          <span class="badge bg-warning text-dark ms-2">Mỗi mã kích hoạt chỉ dùng 1 lần</span>
+          <span class="badge bg-warning text-dark ms-2"
+            >Mỗi mã kích hoạt chỉ dùng 1 lần</span
+          >
         </li>
         <li class="list-group-item">
           Sau khi kích hoạt, bạn có thể sử dụng code ngay.
@@ -48,15 +50,20 @@
             hoạt.
           </small>
         </li>
+        <li class="list-group-item">
+          Trong trường hợp đã thanh toán mà key lỗi nhắn mình nha
+          <strong class="text-danger">Zalo: 0335010817</strong> hoặc
+          <strong class="text-danger">Tele: @devcatphim</strong>
+        </li>
       </ol>
     </div>
   </div>
 </div>
 
-<div class="alert alert-success d-flex align-items-center justify-content-between">
-  <div>
-    ✅ Thanh toán thành công! Bạn có thể tải code tại đây:
-  </div>
+<div
+  class="alert alert-success d-flex align-items-center justify-content-between"
+>
+  <div>✅ Thanh toán thành công! Bạn có thể tải code tại đây:</div>
   <a
     class="btn btn-sm btn-primary ms-2"
     href="<%= order.code.driveLink %>"

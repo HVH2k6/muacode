@@ -1,0 +1,82 @@
+<div class="d-flex justify-content-between align-items-center">
+  <h3>Quản lý máy đã kích hoạt</h3>
+  <div>
+    <a class="btn btn-outline-secondary btn-sm" href="/admin/orders">Quay lại Orders</a>
+  </div>
+</div>
+
+<form class="row g-2 mt-3 mb-3" method="GET" action="/admin/activations" style="max-width:520px">
+  <div class="col-8">
+    <input class="form-control" name="orderCode" placeholder="Tìm theo mã đơn (VD: 1756938676599)" value="<%= orderCode %>">
+  </div>
+  <div class="col-4 d-flex gap-2">
+    <button class="btn btn-primary w-100">Tìm</button>
+    <a class="btn btn-outline-secondary" href="/admin/activations">Xóa lọc</a>
+  </div>
+</form>
+
+<table class="table table-hover align-middle mt-2">
+  <thead>
+    <tr>
+      <th>Thời gian tạo</th>
+      <th>Mã đơn</th>
+      <th>Source</th>
+      <th>Thanh toán</th>
+      <th>Kích hoạt</th>
+      <th>Thiết bị / IP</th>
+      <th class="text-end">Thao tác</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (orders.length === 0) { %>
+      <tr><td colspan="7" class="text-muted">Không có dữ liệu</td></tr>
+    <% } %>
+
+    <% orders.forEach(o => { %>
+      <tr class="<%= o.activation?.isActivated ? '' : 'table-light' %>">
+        <td><%= new Date(o.createdAt).toLocaleString('vi-VN') %></td>
+        <td>#<%= o.orderCode %></td>
+        <td><%= o.code?.title || '' %></td>
+
+        <td>
+          <span class="badge bg-<%= o.status === 'PAID' ? 'success' : 'secondary' %>">
+            <%= o.status %>
+          </span>
+          <% if (o.paidAt) { %>
+            <div class="small text-muted"><%= new Date(o.paidAt).toLocaleString('vi-VN') %></div>
+          <% } %>
+        </td>
+
+        <td>
+          <% if (o.activation?.isActivated) { %>
+            <span class="badge bg-success">Đã kích hoạt</span>
+            <div class="small text-muted">
+              <%= o.activation.activatedAt ? new Date(o.activation.activatedAt).toLocaleString('vi-VN') : '' %>
+            </div>
+          <% } else { %>
+            <span class="badge bg-secondary">Chưa</span>
+          <% } %>
+        </td>
+
+        <td>
+          <div class="small">
+            <div><strong>Device:</strong> <%= o.activation?.deviceId || '-' %></div>
+            <div><strong>IP:</strong> <%= o.activation?.ip || '-' %></div>
+          </div>
+        </td>
+
+        <td class="text-end">
+          <div class="d-flex gap-2 justify-content-end">
+            <% if (o.activation?.isActivated) { %>
+              <form method="POST" action="/admin/activations/<%= o._id %>/reset" onsubmit="return confirm('Reset kích hoạt cho đơn #<%= o.orderCode %>?')">
+                <button class="btn btn-sm btn-outline-warning">Reset kích hoạt</button>
+              </form>
+            <% } %>
+            <a class="btn btn-sm btn-outline-secondary" href="/admin/codes/<%= o.code?._id %>/edit">Sửa code</a>
+            <a class="btn btn-sm btn-outline-primary" href="/admin/orders">Xem đơn</a>
+          </div>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>

@@ -46,8 +46,7 @@ app.use(methodOverride('_method'));
 // ===== Helpers =====
 const adminAuth = basicAuth({
   users: {
-    [process.env.ADMIN_USER || 'admin']:
-      process.env.ADMIN_PASSWORD || 'admin123',
+    [process.env.ADMIN_USER || 'admin']: process.env.ADMIN_PASSWORD || 'admin123',
   },
   challenge: true,
 });
@@ -90,7 +89,7 @@ app.post('/order', async (req, res) => {
       status: 'PENDING',
     });
 
-    // Tạo chữ ký để gắn vào returnUrl (dùng xác nhận đơn đã thanh toán)
+    // Chữ ký gắn vào returnUrl (xác nhận đơn đã thanh toán khi không dùng webhook)
     const statusText = 'PAID';
     const sig = crypto
       .createHmac('sha256', process.env.PAYOS_CHECKSUM_KEY)
@@ -113,13 +112,10 @@ app.post('/order', async (req, res) => {
     });
 
     // Lưu paymentLinkId + checkoutUrl
-    order.paymentLinkId =
-      paymentLink.paymentLinkId || paymentLink.data?.paymentLinkId;
-    order.checkoutUrl =
-      paymentLink.checkoutUrl || paymentLink.data?.checkoutUrl;
+    order.paymentLinkId = paymentLink.paymentLinkId || paymentLink.data?.paymentLinkId;
+    order.checkoutUrl = paymentLink.checkoutUrl || paymentLink.data?.checkoutUrl;
     await order.save();
 
-    // Redirect sang payOS để khách thanh toán
     res.redirect(order.checkoutUrl);
   } catch (err) {
     console.error(err);
@@ -235,6 +231,26 @@ app.post('/admin/orders/:id/mark-paid', adminAuth, async (req, res) => {
   });
   res.redirect('/admin/orders');
 });
+
+// ==== ACTIVATIONS (ADMIN) ====
+// GET /admin/activations?orderCode=...
+app.get('/admin/activations', adminAuth, async (req, res) => {
+  const { orderCode } = req.query || {};
+  const q = {};
+  if (orderCode) q.orderCode = Number(orderCode);
+
+  const orders = await Order.find(q).sort({ createdAt: -1 }).populate('code');
+  res.render('admin/activations', { orders, money, orderCode: orderCode || '' });
+});
+
+// POST /admin/activations/:id/reset -> clear activation của 1 đơn
+app.post('/admin/activations/:id/reset', adminAuth, async (req, res) => {
+  await Order.findByIdAndUpdate(req.params.id, {
+    activation: { isActivated: false, activatedAt: null, deviceId: null, ip: null }
+  });
+  res.redirect('back');
+});
+
 // ===== API KÍCH HOẠT CODE =====
 // POST /api/activate
 // Body: { orderCode: number, deviceId?: string }
@@ -294,55 +310,57 @@ app.post('/api/activate', async (req, res) => {
     return res.status(500).json({ error: 'server_error' });
   }
 });
+// Admin reset activation (Node side)
+app.post('/api/admin/reset-activation', async (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (secret !== process.env.ADMIN_ACTIVATE_SECRET) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+
+  const { orderCode } = req.body || {};
+  if (!orderCode) return res.status(400).json({ error: 'orderCode required' });
+
+  await Order.updateOne({ orderCode }, { $set: { activation: null } });
+  res.json({ ok: true });
+});
 // --- Trang tổng hợp GET links ---
 app.get('/links', async (req, res) => {
-  // Lấy 1 code và 1 order gần nhất để minh họa link có ID thật
   const sampleCode = await SourceCode.findOne().sort({ createdAt: -1 });
   const sampleOrder = await Order.findOne().sort({ createdAt: -1 });
 
-  // Chuẩn bị các link (GET only)
   const links = [
     { path: '/', label: 'Trang chủ (danh sách source code)' },
-
-    // code
     sampleCode
       ? { path: `/code/${sampleCode._id}`, label: 'Chi tiết 1 source code (ví dụ)' }
       : { path: '/code/:id', label: 'Chi tiết 1 source code (thay :id)' },
-
-    // tạo đơn (form GET)
     sampleCode
       ? { path: `/order/new/${sampleCode._id}`, label: 'Form tạo đơn mua (ví dụ)' }
       : { path: '/order/new/:codeId', label: 'Form tạo đơn mua (thay :codeId)' },
-
-    // return/cancel (GET)
     sampleOrder
       ? { path: `/order/${sampleOrder._id}/success`, label: 'Trang success sau thanh toán (ví dụ)' }
       : { path: '/order/:id/success', label: 'Trang success sau thanh toán (thay :id)' },
-
     sampleOrder
       ? { path: `/order/${sampleOrder._id}/cancel`, label: 'Trang huỷ thanh toán (ví dụ)' }
       : { path: '/order/:id/cancel', label: 'Trang huỷ thanh toán (thay :id)' },
-
-    // API GET kiểm tra trạng thái đơn
     sampleOrder
       ? { path: `/api/order/${sampleOrder._id}`, label: 'API trạng thái đơn (GET, ví dụ)' }
       : { path: '/api/order/:id', label: 'API trạng thái đơn (GET, thay :id)' },
 
-    // ADMIN (có basic-auth)
+    // ADMIN
     { path: '/admin', label: 'Admin: điều hướng' },
     { path: '/admin/codes', label: 'Admin: danh sách source code' },
     sampleCode
       ? { path: `/admin/codes/${sampleCode._id}/edit`, label: 'Admin: sửa 1 source code (ví dụ)' }
       : { path: '/admin/codes/:id/edit', label: 'Admin: sửa 1 source code (thay :id)' },
     { path: '/admin/orders', label: 'Admin: danh sách đơn hàng' },
+    { path: '/admin/activations', label: 'Admin: quản lý máy kích hoạt' },
 
-    // static (tham khảo)
+    // static
     { path: '/public/*', label: 'Static assets (Bootstrap, ảnh, css, v.v.)' }
   ];
 
   res.render('links', { links });
 });
-
 
 // ===== Start =====
 const port = process.env.PORT || 3000;
