@@ -323,6 +323,45 @@ app.post('/api/admin/reset-activation', async (req, res) => {
   await Order.updateOne({ orderCode }, { $set: { activation: null } });
   res.json({ ok: true });
 });
+app.post('/api/validate', async (req, res) => {
+  try {
+    const { orderCode, deviceId } = req.body || {};
+    if (!orderCode || !deviceId) {
+      return res.status(400).json({ error: 'orderCode & deviceId required' });
+    }
+
+    const order = await Order.findOne({ orderCode }).populate('code');
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    // Phải đã thanh toán
+    if (order.status !== 'PAID') {
+      return res.status(400).json({ error: 'Order is not PAID' });
+    }
+
+    // Chưa kích hoạt -> không hợp lệ theo flow của bạn (bắt người dùng kích hoạt trước)
+    if (!order.activation?.isActivated) {
+      return res.status(403).json({ error: 'Order not activated yet' });
+    }
+
+    // Device phải khớp
+    if (order.activation.deviceId && order.activation.deviceId !== deviceId) {
+      return res.status(409).json({ error: 'Device mismatch' });
+    }
+
+    // (tuỳ chọn) nếu muốn kiểm soát hạn 999 ngày ở Node luôn (thay vì PHP):
+    // const MAX_DAYS = 999;
+    // const ageMs = Date.now() - new Date(order.activation.activatedAt).getTime();
+    // if (ageMs > MAX_DAYS * 86400_000) {
+    //   return res.status(403).json({ error: 'License expired' });
+    // }
+
+    // OK
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('validate error:', e);
+    return res.status(500).json({ error: 'server_error' });
+  }
+});
 // --- Trang tổng hợp GET links ---
 app.get('/links', async (req, res) => {
   const sampleCode = await SourceCode.findOne().sort({ createdAt: -1 });
